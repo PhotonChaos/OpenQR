@@ -1,0 +1,2 @@
+# OpenQR
+QR Code Generator
