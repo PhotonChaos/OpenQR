@@ -146,7 +146,13 @@ def get_optimal_version(message, encoding_mode: EncodingMode, correction_lvl: Co
 ##############################
 #   Main Algorithm
 #
-def encode_data(message, correction_level) -> list[int]:
+def encode_data(message, correction_level) -> (list[int], list[int]):
+    """
+    Consumes a message, and produces the encoded message and the error correction code
+    :param message: The message to encode
+    :param correction_level: The desired level of error correction
+    :return: A pair of the encoded message, and it's correction code
+    """
     encoding_mode = get_optimal_encoding(message)
 
     if encoding_mode == EncodingMode.KANJI:
@@ -155,8 +161,17 @@ def encode_data(message, correction_level) -> list[int]:
 
     version = get_optimal_version(message, encoding_mode, correction_level)
 
+    if version == ERROR_VERSION:
+        print("[!] Encoding failed.")
+        return []
+    elif version == VERSION_TOO_HIGH:
+        print("[!] Message is too long to be encoded in a QR code.")
+        print("[!]    Make it shorter, or choose a lower correction mode.")
+        print("[!]    Also, try to make it all upper-case alphanumerics if you can.")
+
     # TODO: Encode data
+    # At this point, version is valid and 1 <= version <= 40
 
     # TODO: Error correction
 
-    return message
+    return message, []
