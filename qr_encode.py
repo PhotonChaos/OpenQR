@@ -16,6 +16,9 @@ class EncodingMode(Enum):
     BYTE = 2
     KANJI = 3
 
+    def __int__(self):
+        return self.value
+
 
 class CorrectionLevel(Enum):
     LOW = 0
@@ -23,6 +26,9 @@ class CorrectionLevel(Enum):
     QUARTILE = 2
     HIGH = 3
 
+
+VERSION_TOO_HIGH = 41
+ERROR_VERSION = -1
 
 # Turns out there isn't really a formula for calculating the version thresholds.
 # So we just hardcode this table. It's not perfect but it works.
@@ -110,10 +116,31 @@ def get_optimal_version(message, encoding_mode: EncodingMode, correction_lvl: Co
     :param message: The message to be encoded
     :param encoding_mode: The mode the message is to be encoded with (numeric, alphanumeric, etc.)
     :param correction_lvl: The level of error correction desired
-    :return: The smallest version number which can fit message with the requested settings
+    :return: The smallest version number which can fit message with the requested settings. -1 if error occured
     """
 
-    return 1
+    version = 0
+    correction_map = [[]]
+
+    if correction_lvl == CorrectionLevel.LOW:
+        correction_map = low_thresholds
+    elif correction_lvl == CorrectionLevel.MEDIUM:
+        correction_map = medium_thresholds
+    elif correction_lvl == CorrectionLevel.QUARTILE:
+        correction_map = quartile_thresholds
+    elif correction_lvl == CorrectionLevel.HIGH:
+        correction_map = high_thresholds
+    else:
+        print("[!] Error: Invalid correction level")
+        return ERROR_VERSION
+
+    while len(message) > correction_map[version][int(encoding_mode)]:
+        version += 1
+
+        if version >= len(correction_map):
+            return VERSION_TOO_HIGH
+
+    return version + 1
 
 
 ##############################
