@@ -15,9 +15,25 @@ class EncodingMode(Enum):
     ALPHA_NUMERIC = 1
     BYTE = 2
     KANJI = 3
+    ECI = 4  # same size as kanji
 
     def __int__(self):
+        if self == EncodingMode.ECI:
+            return int(EncodingMode.KANJI)
+
         return self.value
+
+    def indicator(self):
+        if self == EncodingMode.NUMERIC:
+            return [0, 0, 0, 1]
+        elif self == EncodingMode.ALPHA_NUMERIC:
+            return [0, 0, 1, 0]
+        elif self == EncodingMode.BYTE:
+            return [0, 1, 0, 0]
+        elif self == EncodingMode.KANJI:
+            return [1, 0, 0, 0]
+        else:
+            return [0, 1, 1, 1]
 
 
 class CorrectionLevel(Enum):
@@ -86,10 +102,54 @@ high_thresholds = [[17, 10, 7, 4], [34, 20, 14, 8], [58, 35, 24, 15], [82, 50, 3
                    [2361, 1431, 983, 605], [2524, 1530, 1051, 647], [2625, 1591, 1093, 673], [2735, 1658, 1139, 701],
                    [2927, 1774, 1219, 750], [3057, 1852, 1273, 784]]
 
+indicator_bits = [
+    [10, 9, 8, 8],
+    [12, 11, 16, 10],
+    [14, 13, 16, 12]
+]
+
 
 ##############################
 #   Helper Methods
 #
+def as_bin_array(n: int) -> list[int]:
+    return [int(i) for i in bin(n)[2:]]
+
+
+def alphanum_rep(ch: chr) -> int:
+    """
+    Alphanumeric representation of a character
+    :param ch: The character to represent
+    :return: The alphanumeric representation of ch
+    """
+    if ord('0') <= ord(ch) <= ord('9'):
+        return ord(ch) - ord('0')
+
+    if ord('A') <= ord(ch) <= ord('Z'):
+        return 10 + ord(ch) - ord('A')
+
+    if chr == ' ':
+        return 36
+    elif chr == '$':
+        return 37
+    elif chr == '%':
+        return 38
+    elif chr == '*':
+        return 39
+    elif chr == '+':
+        return 40
+    elif chr == '-':
+        return 41
+    elif chr == '.':
+        return 42
+    elif chr == '/':
+        return 43
+    elif chr == ':':
+        return 44
+
+    print(f"[!] Unrecognized character {ch}, ord: {ord(ch)}")
+    return 0
+
 
 def get_optimal_encoding(message: str) -> EncodingMode:
     """
@@ -144,9 +204,52 @@ def get_optimal_version(message, encoding_mode: EncodingMode, correction_lvl: Co
 
 
 ##############################
+#   Encoding Methods
+#
+
+def encode_numeric(message: str) -> list[int]:
+    """
+    Encodes a string using the numeric mode.
+    :param message: The message to encode
+    :return: A binary array, representing the encoded string
+    """
+    message_blocks = [as_bin_array(int(message[i:i+3])) for i in range(0, len(message), 3)]
+
+    msg_bin = []
+
+    for i in message_blocks:
+        msg_bin.extend(i)
+
+    return msg_bin
+
+
+def encode_alphanumeric(message: str) -> list[int]:
+    # break into pairs
+    message_blocks = [message[i:i+2] for i in range(0, len(message), 2)]
+
+    message_nums = [(45 * alphanum_rep(pair[0])) + alphanum_rep(pair[1]) for pair in message_blocks[:-1]]
+
+    if len(message_blocks[-1]) == 1:
+        message_nums.append(alphanum_rep(message_blocks[-1][0]))
+    else:
+        message_nums.append((45 * alphanum_rep(message_blocks[-1][0])) + alphanum_rep(message_blocks[-1][1]))
+
+    message_bin = []
+
+    for i in message_nums:
+        message_bin.extend(as_bin_array(i))
+
+    return message_bin
+
+
+def encode_byte(message: str) -> list[int]:
+    return []
+
+
+##############################
 #   Main Algorithm
 #
-def encode_data(message, correction_level) -> (list[int], list[int]):
+def encode_data(message: str, correction_level: CorrectionLevel) -> list[int]:
     """
     Consumes a message, and produces the encoded message and the error correction code
     :param message: The message to encode
@@ -157,21 +260,42 @@ def encode_data(message, correction_level) -> (list[int], list[int]):
 
     if encoding_mode == EncodingMode.KANJI:
         print("Not supported.")
-        return message
+        return []
 
     version = get_optimal_version(message, encoding_mode, correction_level)
 
-    if version == ERROR_VERSION:
+    if version <= ERROR_VERSION:
         print("[!] Encoding failed.")
         return []
-    elif version == VERSION_TOO_HIGH:
+    elif version >= VERSION_TOO_HIGH:
         print("[!] Message is too long to be encoded in a QR code.")
         print("[!]    Make it shorter, or choose a lower correction mode.")
         print("[!]    Also, try to make it all upper-case alphanumerics if you can.")
 
-    # TODO: Encode data
-    # At this point, version is valid and 1 <= version <= 40
+    # Encode the data.
+    # At this point, 1 <= version <= 40
+    encoded_msg = []
+
+    # Mode Indicator
+    encoded_msg.extend(encoding_mode.indicator())
+
+    # Character count indicator
+    indicator = as_bin_array(len(message))
+
+    if 1 <= version <= 9:
+        bit_cap = indicator_bits[0][int(encoding_mode)]
+    elif 10 <= version <= 26:
+        bit_cap = indicator_bits[1][int(encoding_mode)]
+    else:
+        bit_cap = indicator_bits[2][int(encoding_mode)]
+
+    if len(indicator) < bit_cap:
+        indicator.extend([0]*(bit_cap - len(indicator)))
+
+    encoded_msg.extend(indicator)
+
+    # Now encode the data
 
     # TODO: Error correction
 
-    return message, []
+    return encoded_msg
