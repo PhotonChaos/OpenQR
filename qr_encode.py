@@ -274,10 +274,10 @@ def encode_data(message: str, correction_level: CorrectionLevel) -> list[int]:
 
     # Encode the data.
     # At this point, 1 <= version <= 40
-    encoded_msg = []
+    full_encoded = []
 
     # Mode Indicator
-    encoded_msg.extend(encoding_mode.indicator())
+    full_encoded.extend(encoding_mode.indicator())
 
     # Character count indicator
     indicator = as_bin_array(len(message))
@@ -292,10 +292,23 @@ def encode_data(message: str, correction_level: CorrectionLevel) -> list[int]:
     if len(indicator) < bit_cap:
         indicator.extend([0]*(bit_cap - len(indicator)))
 
-    encoded_msg.extend(indicator)
+    full_encoded.extend(indicator)
+
+    encoded_msg = []
 
     # Now encode the data
+    if encoding_mode == EncodingMode.NUMERIC:
+        encoded_msg = encode_numeric(message)
+    elif encoded_msg == EncodingMode.ALPHA_NUMERIC:
+        encoded_msg = encode_alphanumeric(message)
+    elif encoded_msg == EncodingMode.BYTE:
+        encoded_msg = encode_byte(message)
+    elif encoded_msg == EncodingMode.KANJI or encoded_msg == EncodingMode.ECI:
+        print("[!] Kanji/ECI not supported")
+        return []
+
+    # TODO: Break into codewords
 
     # TODO: Error correction
 
-    return encoded_msg
+    return full_encoded
