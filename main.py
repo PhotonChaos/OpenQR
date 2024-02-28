@@ -9,11 +9,13 @@ import image_gen
 
 
 if __name__ == '__main__':
+    correction_lvl = qr_encode.CorrectionLevel.LOW
+
     print("Encoding data...")
-    encoded_data = qr_encode.encode_data(input("Message to encode:"), 1, 0)
+    encoded_data = qr_encode.encode_data(input("Message to encode: "), correction_lvl)
 
     print("Stitching bitmap...")
-    qr_data = image_gen.construct_img(encoded_data, 1)
+    qr_data = image_gen.construct_img(encoded_data, correction_lvl)
 
     print("Generating image...")
     qr_img = image_gen.gen_image(qr_data)
