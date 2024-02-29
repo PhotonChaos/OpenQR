@@ -128,23 +128,23 @@ def alphanum_rep(ch: chr) -> int:
     if ord('A') <= ord(ch) <= ord('Z'):
         return 10 + ord(ch) - ord('A')
 
-    if chr == ' ':
+    if ch == ' ':
         return 36
-    elif chr == '$':
+    elif ch == '$':
         return 37
-    elif chr == '%':
+    elif ch == '%':
         return 38
-    elif chr == '*':
+    elif ch == '*':
         return 39
-    elif chr == '+':
+    elif ch == '+':
         return 40
-    elif chr == '-':
+    elif ch == '-':
         return 41
-    elif chr == '.':
+    elif ch == '.':
         return 42
-    elif chr == '/':
+    elif ch == '/':
         return 43
-    elif chr == ':':
+    elif ch == ':':
         return 44
 
     print(f"[!] Unrecognized character {ch}, ord: {ord(ch)}")
@@ -236,14 +236,29 @@ def encode_alphanumeric(message: str) -> list[int]:
 
     message_bin = []
 
-    for i in message_nums:
-        message_bin.extend(as_bin_array(i))
+    for i in range(len(message_nums)):
+        bin_arr = as_bin_array(message_nums[i])
+
+        if len(message) % 2 == 1 and i == len(message_nums)-1:
+            if len(bin_arr) < 6:
+                bin_arr = [0]*(6-len(bin_arr)) + bin_arr
+        elif len(bin_arr) < 11:
+            bin_arr = [0]*(11-len(bin_arr)) + bin_arr
+
+        message_bin.extend(bin_arr)
 
     return message_bin
 
 
 def encode_byte(message: str) -> list[int]:
-    return []
+    msg_nums = [ord(i.encode('utf-8')) for i in message]
+
+    msg_bytes = []
+
+    for i in msg_nums:
+        msg_bytes.extend(as_bin_array(i))
+
+    return msg_bytes
 
 
 ##############################
