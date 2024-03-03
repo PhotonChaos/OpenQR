@@ -1,24 +1,20 @@
 import qr_encode
 import image_gen
 
-
 # Overall plan:
-# - encode_data(input_string, format_version_info) -> encoded data as array of cells (with err correction)
-# - construct_img(encoded_data, format_version_info) -> 2d np array = bitmap
-# - gen_img(bitmap, padding=3) -> Image
-
+# 1. Get the data and user's desired parameters
+# 2. Encode the data via qr_encode.py
+# 3. Stitch the data into a bitmap and display it via image_gen.py
 
 if __name__ == '__main__':
     correction_lvl = qr_encode.CorrectionLevel.LOW
 
-    print("Encoding data...")
-    encoded_data = qr_encode.encode_data(input("Message to encode: "), correction_lvl)
+    print("[*] Encoding data...")
+    encoded_data = qr_encode.encode_data(input("[*] Message to encode: "), correction_lvl)
 
-    print("Stitching bitmap...")
-    qr_data = image_gen.construct_img(encoded_data, correction_lvl)
-
-    print("Generating image...")
-    qr_img = image_gen.gen_image(qr_data)
-
-    print("Done!")
+    print("[*] Stitching bitmap...")
+    qr_img = image_gen.construct_qr(encoded_data, correction_lvl)
+    
+    print("[*] Done!")
+    
     qr_img.show()
