@@ -6,6 +6,9 @@
 
 from PIL import Image
 
+##############################
+#   Constants
+#
 # Large squares, 7x7
 BIG_SQUARE = [
     [0, 0, 0, 0, 0, 0, 0],
@@ -39,8 +42,19 @@ MASK_FORMULAS = {
     0b111: lambda x, y: (x*y % 2) + (x*y % 3)
 }
 
+##############################
+#   Main Algorithm
+#
+def apply_mask(bitmap, mask_mode):
+    pass
 
-def construct_img(encoded_content, correction_mode) -> list[list[int]]:
+
+def gen_image(qr_data: list[list[int]], padding=3) -> Image:
+    qr_img = Image.fromarray(qr_data)
+    return qr_img
+
+
+def construct_qr(encoded_content, correction_mode) -> Image:
     # TODO: Auto-calculate the version value based on the size of content and the correction rate
     version = 2
     lw = 4 * version + 17
@@ -62,14 +76,7 @@ def construct_img(encoded_content, correction_mode) -> list[list[int]]:
     # TODO: Pass 4, add version and format information
 
     # TODO: Pass 5, add the data.
+    
+    # TODO: Pass 6, apply the mask
 
-    return img_bitmap
-
-
-def apply_mask(bitmap, mask_mode):
-    pass
-
-
-def gen_image(qr_data: list[list[int]], padding=3) -> Image:
-    qr_img = Image.fromarray(qr_data)
-    return qr_img
+    return gen_image(img_bitmap)
