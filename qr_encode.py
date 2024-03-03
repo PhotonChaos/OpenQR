@@ -214,7 +214,7 @@ def encode_kanji(message: str) -> list[int]:
 #   Main Algorithm
 #
 
-def encode_data(message: str, correction_level: CorrectionLevel) -> list[int]:
+def encode_data(message: str, correction_level: CorrectionLevel) -> list[list[int]]:
     """
     Consumes a message, and produces the encoded message and the error correction code
     :param message: The message to encode
@@ -268,8 +268,6 @@ def encode_data(message: str, correction_level: CorrectionLevel) -> list[int]:
     # Put it all together
     full_coded = encoding_mode.indicator() + count_indicator + encoded_msg
     
-    # Pad bits
-    
     # Get the encoding table
     codeword_table = []
     if correction_level == CorrectionLevel.LOW:
@@ -300,12 +298,29 @@ def encode_data(message: str, correction_level: CorrectionLevel) -> list[int]:
     
     if len(full_coded) > byte_capacity:
         full_coded.pop()
-    
-    
-    # TODO: Error correction
-    
-    return []
+        
+    return error_correction(full_coded, correction_level, version)
 
 
-def error_correction(message: str) -> list[int]:
-    return []
+def error_correction(codewords: list[list[int]], correction_level: CorrectionLevel, version: int) -> list[list[int]]:
+    blocks = []
+    
+    if version > 2:
+        # TODO: break up codewords into blocks according to table
+        pass
+    else:
+        # one block
+        blocks += [codewords]
+    
+    correction_blocks = []
+    
+    # TODO: Process Blocks
+    
+    
+    if version <= 2:
+        return blocks + correction_blocks
+    
+    # TODO: Interleave error correction and normal codewords
+    interleaved_blocks = []
+
+    return interleaved_blocks
