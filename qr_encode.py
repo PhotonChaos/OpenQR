@@ -326,12 +326,11 @@ def error_correct(codewords: list[list[int]], correction_level: CorrectionLevel,
 
     group1, group2 = [], []
 
-    if version > 2:
-        # TODO: break up codewords into blocks according to table
-        pass
-    else:
-        # one block
-        group1 += [codewords]
+    for i in range(g1_blocks):
+        block = []
+
+        for j in range(g1_block_words):
+            block.append(codewords[i*g1_block_words + j])
 
     correction_blocks = []
 
